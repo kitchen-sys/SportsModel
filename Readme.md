@@ -50,7 +50,9 @@ Model causal relationships:
 Books model correlations. You model causation.
 
 ### 3. Expected Value with OT Correction
-\(\text{EV} = P(\text{true}) \times \text{Payout} - P(\text{market}) \times \text{Stake}\)
+\(\text{EV} = P(\text{true}) \times \text{Payout} - (1 - P(\text{true})) \times \text{Stake}\)
+
+Recent update: the EV formula now correctly uses the true win probability against the stake (loss side) rather than market-implied vig, aligning calculations with real betting returns.
 
 If \(W_2(P_{true}, P_{market}) > \delta:\)
 
@@ -402,8 +404,9 @@ Get API key and set: `export ODDS_API_KEY=your_key`
 - Test Causal Graph: `python src/models/causal_graph.py`
 - Test Monte Carlo: `python src/models/monte_carlo.py`
 - Test Edge Detection: `python src/edge/detector.py`
+- Validate EV math and scanners: `pytest tests/test_ev_calculator.py`
 
-Each module has standalone examples.
+Each module has standalone examples and targeted tests for critical calculations.
 
 ## 🚨 Disclaimer
 This is for educational and research purposes.
