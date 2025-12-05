@@ -4,12 +4,13 @@ import sys
 import unittest
 
 PROJECT_ROOT = pathlib.Path(__file__).resolve().parents[1]
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(PROJECT_ROOT))
+SRC_ROOT = PROJECT_ROOT / "src"
+if str(SRC_ROOT) not in sys.path:
+    sys.path.insert(0, str(SRC_ROOT))
 
-from src.edge.detector import EdgeDetector
-from src.models.monte_carlo import MonteCarloSimulator, SimulationConfig
-from src.sports.nba import NBAAnalyzer
+from edge.detector import EdgeDetector
+from models.monte_carlo import MonteCarloSimulator, SimulationConfig
+from sports.nba import NBAAnalyzer
 
 
 class StubStatsFetcher:

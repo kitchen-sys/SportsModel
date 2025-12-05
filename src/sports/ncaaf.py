@@ -3,10 +3,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Iterable, List
 
-from ..data.stats_fetcher import StatsFetcher
-from ..edge.detector import EdgeDetector, EdgeResult
-from ..models.distribution import Distribution
-from ..models.monte_carlo import MonteCarloSimulator
+from data.stats_fetcher import StatsFetcher
+from edge.detector import EdgeDetector, EdgeResult
+from models.distribution import Distribution
+from models.monte_carlo import MonteCarloSimulator
 
 
 @dataclass
@@ -21,16 +21,10 @@ class GameInfo:
 
 
 class NCAAFAnalyzer:
-    def __init__(
-        self,
-        odds_api_client=None,
-        stats_fetcher: StatsFetcher | None = None,
-        simulator: MonteCarloSimulator | None = None,
-        detector: EdgeDetector | None = None,
-    ):
-        self.stats = stats_fetcher or StatsFetcher(odds_api_client=odds_api_client)
-        self.simulator = simulator or MonteCarloSimulator()
-        self.detector = detector or EdgeDetector()
+    def __init__(self, odds_api_client=None):
+        self.stats = StatsFetcher(odds_api_client=odds_api_client)
+        self.simulator = MonteCarloSimulator()
+        self.detector = EdgeDetector()
 
     def analyze_game(
         self,
