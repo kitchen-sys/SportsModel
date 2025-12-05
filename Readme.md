@@ -285,11 +285,14 @@ Example CLI output from the demo:
 - Swap `StatsFetcher` internals for live stat feeds or model outputs.
 - Tune thresholds in `config.yaml` to match your risk profile once real data is connected.
 
-## 🧪 Testing
-- Run the full suite: `pytest`
-- Target EV math: `pytest tests/test_ev_calculator.py`
+## 🧪 Testing Individual Components
+- Test OT Engine: `python src/models/ot_engine.py`
+- Test Causal Graph: `python src/models/causal_graph.py`
+- Test Monte Carlo: `python src/models/monte_carlo.py`
+- Test Edge Detection: `python src/edge/detector.py`
+- Validate EV math and scanners: `pytest tests/test_ev_calculator.py`
 
-Tests keep the expected-value calculation aligned with the true-probability definition and exercise the synthetic scanner path used by the CLI demo.
+Each module has standalone examples and targeted tests for critical calculations.
 
 ## 🚨 Disclaimer
 This is for educational and research purposes.
