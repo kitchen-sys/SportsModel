@@ -71,83 +71,51 @@ Where:
 
 Use fractional Kelly (0.5×) for risk control.
 
-## 🏗️ System Architecture
+## 🏗️ System Layout
 ```
-ot_sports_betting/
-│
+SportsModel/
 ├── src/
-│   ├── models/
-│   │   ├── ot_engine.py         # Wasserstein distance computation
-│   │   ├── causal_graph.py      # DAG for causal inference
-│   │   ├── monte_carlo.py       # MC simulation
-│   │   └── distribution.py      # Distribution modeling
-│   │
+│   ├── agent.py            # CLI entrypoint for demos and sport scans
+│   ├── backtest/           # Simple backtest helpers (engine + metrics)
 │   ├── data/
-│   │   ├── odds_scraper.py      # Fetch odds (The Odds API)
-│   │   └── stats_fetcher.py     # Team stats (NBA API, etc.)
-│   │
-│   ├── edge/
-│   │   ├── detector.py          # Edge detection logic
-│   │   ├── ev_calculator.py     # EV computation
-│   │   └── kelly.py             # Kelly criterion
-│   │
-│   ├── sports/
-│   │   ├── nba.py               # NBA-specific analysis
-│   │   ├── nfl.py               # NFL analysis
-│   │   ├── nhl.py               # NHL analysis
-│   │   ├── ncaaf.py             # College Football analysis
-│   │   ├── soccer.py            # Soccer analysis
-│   │   └── ufc.py               # UFC analysis (in development)
-│   │
-│   ├── backtest/
-│   │   ├── engine.py            # Backtesting framework
-│   │   └── metrics.py           # Performance analytics
-│   │
-│   └── agent.py                 # Main CLI interface
-│
-├── config.yaml                  # Configuration
+│   │   ├── odds_scraper.py # Synthetic odds generator seeded by team lists
+│   │   └── team_registry.py# Supported teams per league
+│   ├── edge/               # Edge detection, EV math, Kelly sizing
+│   ├── models/             # OT distance + distribution helpers
+│   ├── sports/             # Lightweight sport-specific analyzers
+│   └── discord_bot.py      # Bot wrapper that reuses the analyzer stack
+├── tests/                  # Pytest suite (EV math coverage)
+├── config.yaml             # Tuning parameters for the modeling stack
 ├── requirements.txt
-└── README.md
+└── Readme.md
 ```
 
 ## 🚀 Quick Start
-1. **Installation**
+1. **Set up Python environment**
    ```bash
-   cd ot_sports_betting
-   ./start.sh
+   python -m venv .venv
+   source .venv/bin/activate
+   pip install -r requirements.txt
    ```
-   This will:
-   - Create virtual environment
-   - Install dependencies
-   - Set up logging
+   The repo ships with stubbed data sources, so no API keys are required to run the demo or tests.
 
-2. **Run Demo**
+2. **Run demo for a sport**
    ```bash
-   python src/agent.py demo
+   python -m src.agent demo --sport basketball_nba --max-games 2
    ```
-   Output:
-   ```
-   ⚡ EDGE DETECTED: OVER 215.5
-      EV: 5.2%
-      Kelly Bet: 2.1% of bankroll
-      Confidence: 73%
-   ```
+   The demo uses the synthetic odds generator in `src/data/odds_scraper.py` to create matchups from the team registry and prints any detected edges.
 
-3. **Scan Live Games**
+3. **Scan supported sports**
    ```bash
-   # Scan all sports
-   python live_scanner.py --sport all
+   # Scan every supported code
+   python -m src.agent scan --sport all
 
-   # Scan specific sport
-   python live_scanner.py --sport nba
-   python live_scanner.py --sport nfl
-   python live_scanner.py --sport nhl
-   python live_scanner.py --sport ncaaf
-   python live_scanner.py --sport soccer
+   # Scan just one league
+   python -m src.agent scan --sport football_nfl
    ```
-   Finds edges across all live games with real-time odds.
+   Scans enumerate teams from `team_registry.py`, generate odds, and report how many matchups were analyzed per league.
 
-4. **Analyze Specific Game**
+4. **Analyze a specific game in code**
    ```python
    from src.sports.nba import NBAAnalyzer
 
@@ -191,7 +159,7 @@ Bring the scanner directly into your Discord server with slash commands and tier
 Members must have the configured premium role to access sport-specific scans; otherwise they only see the free-tier `/scan` output.
 
 ## 📊 Usage Examples
-### Example 1: NBA Game with Injury
+### Example 1: NBA game with a manual injury adjustment
 ```python
 from src.sports.nba import NBAAnalyzer
 
@@ -204,9 +172,7 @@ edge = analyzer.analyze_game(
     total_line=215.5,
     over_odds=-110,
     under_odds=-110,
-    injuries=[
-        {'player': 'Steph Curry', 'status': 'out', 'impact': -5.8}
-    ]
+    injuries=[{"player": "Steph Curry", "status": "out", "impact": -5.8}],
 )
 
 if edge:
@@ -215,16 +181,18 @@ if edge:
     print(f"Kelly: {edge.kelly_fraction:.2%}")
 ```
 
-### Example 2: Batch Analysis
+### Example 2: Batch analysis using the synthetic odds generator
 ```python
 from src.data.odds_scraper import OddsScraper
+from src.sports.nba import NBAAnalyzer
 
+analyzer = NBAAnalyzer()
 scraper = OddsScraper()
 odds = scraper.fetch_odds_api(sport="basketball_nba")
 
 edges = []
 for game in odds:
-    edge = analyzer.analyze_game(...)
+    edge = analyzer.analyze_game(**{**game, "injuries": []})
     if edge:
         edges.append(edge)
 
@@ -243,14 +211,16 @@ print(f"Sharpe: {result.sharpe_ratio:.2f}")
 ```
 
 ## 🎲 Sports Supported
-| Sport | Teams | Status | Key Features |
-| --- | --- | --- | --- |
-| NBA | 30 | ✅ | Pace, injuries, RAPTOR, home court, totals + spreads |
-| NFL | 32 | ✅ | EPA, weather, key numbers, totals + spreads |
-| NHL | 32 | ✅ | Poisson goals, save%, corsi, totals + puck lines |
-| NCAAF | 17 | ✅ | EPA, higher variance, home advantage, totals + spreads |
-| Soccer | 40 | ✅ | EPL + La Liga, Poisson goals, xG, totals + handicaps |
-| UFC | - | 🚧 | In development (style matchups, bimodal outcomes) |
+The demo ships with analyzers and team registries for:
+
+| Sport code | Coverage source | Notes |
+| --- | --- | --- |
+| `basketball_nba` | Full NBA team list | Gaussian scoring model with optional injury adjustments |
+| `basketball_cbb_division1` | Division 1 schools | Uses the college basketball analyzer with wider variance |
+| `football_nfl` | Full NFL team list | Totals-focused analyzer with pace and variance tweaks |
+| `football_cfb_fbs` | FBS programs | Higher-variance distribution for college totals |
+| `hockey_nhl` | Full NHL team list | Goal-based distribution tuned for low totals |
+| `soccer_*` | EPL, LaLiga, Bundesliga, Serie A, Ligue 1, Champions League | Analyzes totals using league baselines |
 
 ## ⚙️ Configuration
 Edit `config.yaml`:
@@ -280,124 +250,40 @@ risk:
   stop_loss_daily: -0.05        # Stop at 5% daily loss
 ```
 
-## 📈 Performance Metrics
-The system tracks:
+## 📈 Outputs and metrics
+Every detected edge returned by `EdgeDetector` includes:
 
-- Expected Value (EV): Percentage edge per bet
-- Wasserstein Distance (W): OT distance measure
-- Kelly Fraction: Optimal bet size
-- Confidence Score: Reliability (0-1)
-- Closing Line Value (CLV): Beat the closing line?
-- Sharpe Ratio: Risk-adjusted returns
-- Max Drawdown: Worst loss streak
+- Expected Value (EV) computed from true win probability vs. stake
+- Kelly fraction (capped) for sizing
+- True probability compared to market-implied probability
+- Wasserstein distance between the modeled distribution and market line
 
-### Example Output
+Example CLI output from the demo:
 ```
 ⚡ EDGE DETECTED
-  Game: Memphis @ Golden State
-  Bet: UNDER 215.5
-  Odds: -110
-  Expected Value: 4.8%
-  Kelly Bet Size: 1.9% of bankroll
-  Confidence: 81%
-  True P(Under): 54.2%
-  Market P: 50.0%
-  Wasserstein Distance: 0.187
+{
+  "recommendation": "OVER",
+  "line": 215.5,
+  "expected_value": 0.048,
+  "kelly_fraction": 0.02,
+  "true_prob": 0.54,
+  "market_prob": 0.52,
+  "wasserstein_distance": 0.19
+}
 ```
 
 ## 🔬 How It Works (Technical)
-### Pipeline
-1. **Fetch Data**
-   - Odds from The Odds API
-   - Stats from NBA API / ESPN
-   - Injury reports from RotoWire
+### Pipeline in this repository
+1. **Generate matchups** via `OddsScraper.fetch_odds_api`, which creates synthetic lines from the team registry for the selected sport.
+2. **Estimate team baselines** with `StatsFetcher`, which provides lightweight pace/offense/variance priors for each league.
+3. **Simulate outcomes** using `MonteCarloSimulator` to build a Gaussian distribution of totals that can accept manual injury impacts.
+4. **Measure distance** between the simulated distribution and the market line using `OTEngine.distance_between_distributions`.
+5. **Detect edges** with `EdgeDetector`, which applies the EV calculator and Kelly sizing, then filters on OT distance and minimum EV thresholds.
 
-2. **Build Causal Model**
-   - Create DAG of causal relationships
-   - Add injury nodes
-   - Model matchup interactions
-
-3. **Monte Carlo Simulation**
-   - Simulate 10,000 game outcomes
-   - Apply causal effects
-   - Generate true distribution
-
-4. **OT Distance**
-   - Convert market odds to distribution
-   - Compute Wasserstein distance
-   - Detect geometric edge
-
-5. **Edge Detection**
-   - Calculate EV
-   - Apply Kelly sizing
-   - Check risk constraints
-   - Output recommendation
-
-### Example: NBA Totals
-```python
-# True distribution (MC simulation)
-true_samples = simulate_nba_game(warriors, grizzlies, injuries)
-# → μ = 212.3, σ = 10.8
-
-# Market distribution (from odds)
-market_dist = totals_to_distribution(line=215.5, odds=-110)
-# → μ = 215.5, σ = 12.0
-
-# OT distance
-W = wasserstein_distance(true_dist, market_dist)
-# → W = 0.193
-
-# Edge detected! (W > 0.15)
-# Market is overpricing total → Bet UNDER
-```
-
-## 🎯 Best Practices
-1. Start Small
-   - Test with paper trading first
-   - Use fractional Kelly (0.5×)
-   - Max 2% per game
-2. Track CLV
-   - Closing Line Value is the #1 indicator
-   - If you consistently beat closing lines, you're winning long-term
-3. Diversify
-   - Don't bet one sport only
-   - Spread across uncorrelated games
-   - Use portfolio Kelly for multiple bets
-4. Risk Management
-   ```python
-   # Daily limits
-   max_exposure = bankroll * 0.10  # 10% max daily
-   stop_loss = bankroll * 0.05     # Stop at 5% down
-
-   # Per-game limits
-   max_bet = bankroll * 0.02       # 2% per game
-   ```
-5. Monitor Performance
-   ```python
-   # Key metrics
-   if avg_clv > 0:
-       print("✅ Beating closing lines")
-
-   if sharpe > 1.5:
-       print("✅ Excellent risk-adjusted returns")
-
-   if max_drawdown < 0.20:
-       print("✅ Good risk control")
-   ```
-
-## 📊 Data Sources
-### Live Odds
-The Odds API: https://the-odds-api.com/ (500 free requests/month)
-
-Get API key and set: `export ODDS_API_KEY=your_key`
-
-### Stats APIs
-- NBA: nba_api (free) - 30 teams
-- NFL: Pro Football Reference / ESPN - 32 teams
-- NHL: NHL API / Hockey Reference - 32 teams
-- NCAAF: ESPN / College Football Data - 17 major FBS teams
-- Soccer: Football-Data.org / StatsBomb - 40 teams (EPL + La Liga)
-- UFC: UFCStats.com (in development)
+### Extending to real data
+- Replace the stubbed odds generator with an API-backed fetcher inside `src/data/odds_scraper.py`.
+- Swap `StatsFetcher` internals for live stat feeds or model outputs.
+- Tune thresholds in `config.yaml` to match your risk profile once real data is connected.
 
 ## 🧪 Testing Individual Components
 - Test OT Engine: `python src/models/ot_engine.py`
@@ -438,36 +324,13 @@ Areas for improvement:
 
 ## 📧 Support
 For questions or issues:
-- Check documentation
-- Review examples
-- Open GitHub issue
+- Review the examples in this README
+- Open a GitHub issue with reproduction steps
 
 ## ⭐ Key Features
-- ✅ Optimal Transport for edge detection
-- ✅ Causal DAG modeling
-- ✅ Monte Carlo simulation
-- ✅ Kelly Criterion bet sizing
-- ✅ Multi-sport support
-- ✅ Backtesting framework
-- ✅ Risk management built-in
-- ✅ Production-ready code
-
-## 🎓 Learn More
-### Tutorials
-- `notebooks/01_ot_basics.ipynb` - OT fundamentals
-- `notebooks/02_nba_example.ipynb` - Full NBA analysis
-- `notebooks/03_backtesting.ipynb` - Strategy testing
-
-### Theory Deep Dives
-- `docs/optimal_transport.md` - OT mathematics
-- `docs/causal_inference.md` - DAG construction
-- `docs/kelly_criterion.md` - Bet sizing theory
-
-## 🏆 Why This Works
-Sports betting markets are efficient at pricing means, but inefficient at pricing distributions.
-
-By using Optimal Transport to measure distribution geometry, you gain an edge that traditional betting models miss.
-
-Combined with causal modeling and rigorous risk management, this system provides a systematic, quantitative approach to sports betting.
+- ✅ Optimal Transport distance + EV filtering for edges
+- ✅ Kelly Criterion bet sizing with configurable caps
+- ✅ Multi-sport analyzers fed by a shared data/OT stack
+- ✅ Lightweight backtesting helpers
 
 Good luck, and bet responsibly! 🎯
