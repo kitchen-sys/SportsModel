@@ -122,6 +122,101 @@ class TestMultiSportSynthetic(unittest.TestCase):
                 self.assertGreater(edge.wasserstein_distance, detector.ot_threshold)
                 self.assertGreater(edge.expected_value, detector.min_ev)
 
+    def test_low_edges_filtered_across_sports(self):
+        random.seed(202)
+        stub_stats = StubStatsFetcher(
+            {
+                "football_nfl": {
+                    "Team A": {"pace": 100.0, "offensive_rating": 28.0},
+                    "Team B": {"pace": 100.0, "offensive_rating": 28.0},
+                },
+                "football_cfb_fbs": {
+                    "Team A": {"pace": 100.0, "offensive_rating": 35.0},
+                    "Team B": {"pace": 100.0, "offensive_rating": 35.0},
+                },
+                "hockey_nhl": {
+                    "Team A": {"pace": 100.0, "offensive_rating": 3.0},
+                    "Team B": {"pace": 100.0, "offensive_rating": 3.0},
+                },
+                "soccer_epl": {
+                    "Team A": {"pace": 100.0, "offensive_rating": 1.2},
+                    "Team B": {"pace": 100.0, "offensive_rating": 1.2},
+                },
+                "basketball_cbb_division1": {
+                    "Team A": {"pace": 100.0, "offensive_rating": 140.0},
+                    "Team B": {"pace": 100.0, "offensive_rating": 140.0},
+                },
+            }
+        )
+
+        detector = EdgeDetector(ot_threshold=2.0, min_ev=0.2)
+        simulator = MonteCarloSimulator(SimulationConfig(num_paths=600))
+
+        analyzers = {
+            "football_nfl": NFLAnalyzer(stats_fetcher=stub_stats, simulator=simulator, detector=detector),
+            "football_cfb_fbs": NCAAFAnalyzer(
+                stats_fetcher=stub_stats, simulator=simulator, detector=detector
+            ),
+            "hockey_nhl": NHLAnalyzer(stats_fetcher=stub_stats, simulator=simulator, detector=detector),
+            "soccer_epl": SoccerAnalyzer(stats_fetcher=stub_stats, simulator=simulator, detector=detector),
+            "basketball_cbb_division1": CBBAnalyzer(
+                stats_fetcher=stub_stats, simulator=simulator, detector=detector
+            ),
+        }
+
+        edges = {
+            "football_nfl": analyzers["football_nfl"].analyze_game(
+                game_id="nfl_even",
+                home_team="Team A",
+                away_team="Team B",
+                total_line=56.0,
+                over_odds=-110,
+                under_odds=-110,
+                injuries=[],
+            ),
+            "football_cfb_fbs": analyzers["football_cfb_fbs"].analyze_game(
+                game_id="cfb_even",
+                home_team="Team A",
+                away_team="Team B",
+                total_line=70.0,
+                over_odds=-110,
+                under_odds=-110,
+                injuries=[],
+            ),
+            "hockey_nhl": analyzers["hockey_nhl"].analyze_game(
+                game_id="nhl_even",
+                home_team="Team A",
+                away_team="Team B",
+                total_line=6.0,
+                over_odds=-110,
+                under_odds=-110,
+                injuries=[],
+            ),
+            "soccer_epl": analyzers["soccer_epl"].analyze_game(
+                game_id="soccer_even",
+                home_team="Team A",
+                away_team="Team B",
+                total_line=2.4,
+                over_odds=-110,
+                under_odds=-110,
+                injuries=[],
+                sport="soccer_epl",
+            ),
+            "basketball_cbb_division1": analyzers["basketball_cbb_division1"].analyze_game(
+                game_id="cbb_even",
+                home_team="Team A",
+                away_team="Team B",
+                total_line=140.0,
+                over_odds=-110,
+                under_odds=-110,
+                injuries=[],
+            ),
+        }
+
+        for sport, edge in edges.items():
+            with self.subTest(sport=sport):
+                self.assertIsNone(edge)
+
 
 if __name__ == "__main__":
     unittest.main()
