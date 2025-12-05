@@ -7,10 +7,10 @@ from typing import List
 import discord
 from discord import app_commands
 
-from agent import resolve_analyzer
-from data.odds_scraper import OddsScraper
-from data.team_registry import supported_sports
-from edge.detector import EdgeResult
+from .agent import resolve_analyzer
+from .data.odds_scraper import OddsScraper
+from .data.team_registry import supported_sports
+from .edge.detector import EdgeResult
 
 
 @dataclass

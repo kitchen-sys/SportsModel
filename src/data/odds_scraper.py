@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import List
 
-from data.team_registry import supported_sports, teams_for_sport
+from .team_registry import supported_sports, teams_for_sport
 
 
 class OddsScraper:

@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import List
 
-from models.distribution import american_to_decimal, american_to_probability
+from ..models.distribution import american_to_decimal, american_to_probability
 
 
 @dataclass
