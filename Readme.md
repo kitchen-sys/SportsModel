@@ -166,6 +166,28 @@ ot_sports_betting/
        print(f"Kelly: {edge.kelly_fraction:.2%}")
    ```
 
+## 🤖 Discord Bot
+Bring the scanner directly into your Discord server with slash commands and tiered access:
+
+1. Install dependencies and set environment variables
+   ```bash
+   pip install -r requirements.txt
+   export DISCORD_TOKEN="your_bot_token"
+   export DISCORD_GUILD_ID="optional_guild_id_for_faster_sync"  # optional
+   export DISCORD_PREMIUM_ROLE="premium"  # role name that unlocks paid commands
+   ```
+
+2. Run the bot
+   ```bash
+   python src/discord_bot.py
+   ```
+
+3. Slash commands
+   - `/scan` — **Free**: returns the top five edges across all supported sports.
+   - `/scan_sport sport:<code>` — **Premium**: returns every edge with EV ≥ 4% for the chosen sport (NBA, NFL, NHL, FBS, CBB, soccer top-5 leagues, Champions League).
+
+Members must have the configured premium role to access sport-specific scans; otherwise they only see the free-tier `/scan` output.
+
 ## 📊 Usage Examples
 ### Example 1: NBA Game with Injury
 ```python
