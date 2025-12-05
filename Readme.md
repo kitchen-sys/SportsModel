@@ -33,7 +33,6 @@ You have a structural edge.
 ## 1. Wasserstein Distance (W₂)
 
 $$W_2(\mu, \nu) = \inf \left\{ \int\int |x - y|^2 \, d\pi(x,y) : \pi \in \Pi(\mu, \nu) \right\}$$
-
 Where:
 - $\mu$ = true distribution (from Monte Carlo + causal model)
 - $\nu$ = market distribution (from odds)
