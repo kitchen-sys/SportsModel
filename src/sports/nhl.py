@@ -3,10 +3,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Iterable, List
 
-from ..data.stats_fetcher import StatsFetcher
-from ..edge.detector import EdgeDetector, EdgeResult
-from ..models.distribution import Distribution
-from ..models.monte_carlo import MonteCarloSimulator
+from data.stats_fetcher import StatsFetcher
+from edge.detector import EdgeDetector, EdgeResult
+from models.distribution import Distribution
+from models.monte_carlo import MonteCarloSimulator
 
 
 @dataclass

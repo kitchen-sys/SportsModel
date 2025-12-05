@@ -3,10 +3,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import List
 
-from ..models.ot_engine import OTEngine, OTResult
-from ..models.distribution import Distribution
-from .ev_calculator import ExpectedValueResult, compute_expected_value
-from .kelly import kelly_fraction
+from models.ot_engine import OTEngine, OTResult
+from models.distribution import Distribution
+from edge.ev_calculator import ExpectedValueResult, compute_expected_value
+from edge.kelly import kelly_fraction
 
 
 @dataclass
