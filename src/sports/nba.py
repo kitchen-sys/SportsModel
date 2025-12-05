@@ -21,19 +21,10 @@ class GameInfo:
 
 
 class NBAAnalyzer:
-    def __init__(
-        self,
-        nba_api_client=None,
-        odds_api_client=None,
-        stats_fetcher: StatsFetcher | None = None,
-        simulator: MonteCarloSimulator | None = None,
-        detector: EdgeDetector | None = None,
-    ):
-        self.stats = stats_fetcher or StatsFetcher(
-            nba_api_client=nba_api_client, odds_api_client=odds_api_client
-        )
-        self.simulator = simulator or MonteCarloSimulator()
-        self.detector = detector or EdgeDetector()
+    def __init__(self):
+        self.stats = StatsFetcher()
+        self.simulator = MonteCarloSimulator()
+        self.detector = EdgeDetector()
 
     def analyze_game(
         self,
@@ -46,8 +37,8 @@ class NBAAnalyzer:
         injuries: Iterable[dict] | None = None,
     ) -> EdgeResult | None:
         injuries = injuries or []
-        home_stats = self.stats.fetch_team_stats(home_team, sport="basketball_nba")
-        away_stats = self.stats.fetch_team_stats(away_team, sport="basketball_nba")
+        home_stats = self.stats.fetch_team_stats(home_team)
+        away_stats = self.stats.fetch_team_stats(away_team)
 
         base_mean = (home_stats["offensive_rating"] + away_stats["offensive_rating"]) / 2
         base_std = 12.0

@@ -1,1 +1,1 @@
-discord.py==2.3.2
+# Standard library only for the demo implementation

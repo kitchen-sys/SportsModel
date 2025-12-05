@@ -6,38 +6,21 @@ import json
 
 from data.odds_scraper import OddsScraper
 from data.team_registry import teams_for_sport
-from sports import CBBAnalyzer, NBAAnalyzer, NCAAFAnalyzer, NFLAnalyzer, NHLAnalyzer, SoccerAnalyzer
-
-
-def resolve_analyzer(sport: str):
-    if sport == "basketball_nba":
-        return NBAAnalyzer()
-    if sport == "football_nfl":
-        return NFLAnalyzer()
-    if sport == "football_cfb_fbs":
-        return NCAAFAnalyzer()
-    if sport == "hockey_nhl":
-        return NHLAnalyzer()
-    if sport.startswith("soccer_"):
-        return SoccerAnalyzer()
-    if sport == "basketball_cbb_division1":
-        return CBBAnalyzer()
-    # Default to NBA analyzer to keep demo running even if sport code is new
-    return NBAAnalyzer()
+from sports.nba import NBAAnalyzer
 
 
 def run_demo(sport: str, max_games: int | None = None) -> None:
-    analyzer = resolve_analyzer(sport)
+    analyzer = NBAAnalyzer()
     scraper = OddsScraper()
     odds = scraper.fetch_odds_api(sport=sport, max_games=max_games or 1)
 
-    for game in odds:
-        payload = {**game, "injuries": []}
-        # Soccer analyzer needs the specific league code for baselines
-        if isinstance(analyzer, SoccerAnalyzer):
-            payload["sport"] = sport
+    if sport != "basketball_nba":
+        print(f"Scanner data available for {sport}, but demo analysis is NBA-only.")
+        print(f"Generated {len(odds)} sample games covering {len(teams_for_sport(sport))} teams.")
+        return
 
-        edge = analyzer.analyze_game(**payload)
+    for game in odds:
+        edge = analyzer.analyze_game(**game, injuries=[])
         if edge:
             print("⚡ EDGE DETECTED")
             print(json.dumps(asdict(edge), indent=2))
