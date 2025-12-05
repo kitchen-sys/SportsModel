@@ -32,7 +32,7 @@ You have a structural edge.
 
 ## 1. Wasserstein Distance (W₂)
 
-$$W_2(\mu, \nu) = \inf_{\pi \in \Pi(\mu, \nu)} \left\{ \int\int |x - y|^2 \, d\pi(x,y) \right\}$$
+$$W_2(\mu, \nu) = \inf_{\pi \in \Pi(\mu, \nu)} \int\int |x - y|^2 \, d\pi(x,y)$$
 
 Where:
 * $\mu$ = true distribution (from Monte Carlo + causal model)
