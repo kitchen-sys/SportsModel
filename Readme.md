@@ -136,6 +136,19 @@ SportsModel/
        print(f"Kelly: {edge.kelly_fraction:.2%}")
    ```
 
+## 🔌 Plugging in real data sources
+The repo ships with synthetic, no-dependency defaults so it runs anywhere. To connect live feeds, wire them into the existing interfaces instead of touching the modeling stack.
+
+### Odds APIs (any sport)
+- Implement your client inside `src/data/odds_scraper.py` by replacing or extending `fetch_odds_api` to call your provider (Odds API, sportsbook feed, etc.).
+- Return a list of dicts shaped like the synthetic examples: `{game_id, home_team, away_team, total_line, over_odds, under_odds}`.
+- The CLI (`python -m src.agent scan ...`) and examples will automatically use the new feed without changing analyzers.
+
+### NBA injuries via free nba.com endpoints
+- Write a lightweight injury fetcher that hits the nba.com/stats injury report endpoint, normalize to `[{"player": str, "status": str, "impact": float}]`.
+- Pass the fetcher into your calling flow and supply the injuries list to `NBAAnalyzer.analyze_game(...)` so simulations pick up the adjustments.
+- Optional: attach the client to `StatsFetcher(nba_api_client=...)` if you want team metrics (pace/offense/defense) from nba.com as well, keeping the same `fetch_team_metrics` shape used in `StatsFetcher.fetch_team_stats`.
+
 ## 🤖 Discord Bot
 Bring the scanner directly into your Discord server with slash commands and tiered access:
 
