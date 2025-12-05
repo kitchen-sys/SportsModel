@@ -3,7 +3,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import List
 
-from ..models.distribution import american_to_decimal, american_to_probability
+try:
+    from ..models.distribution import american_to_decimal, american_to_probability
+except ImportError:  # Allows imports when edge is treated as a top-level package
+    from models.distribution import american_to_decimal, american_to_probability
 
 
 @dataclass
