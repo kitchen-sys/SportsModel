@@ -30,7 +30,13 @@ You have a structural edge.
 
 ## 📐 Mathematical Framework
 ### 1. Wasserstein Distance (W₂)
-$$W_2(\mu, \nu) = \inf \left\{ \int\int \|x - y\|^2 \, d\pi(x,y) : \pi \in \Pi(\mu, \nu) \right\}$$
+$$
+W_2(\mu, \nu)
+  = \inf_{\pi \in \Pi(\mu, \nu)}
+     \left\{
+        \int\!\!\int |x - y|^2 \, d\pi(x,y)
+     \right\}
+$$
 
 Where:
 
