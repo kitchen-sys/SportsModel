@@ -3,10 +3,16 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Iterable, List
 
-from data.stats_fetcher import StatsFetcher
-from edge.detector import EdgeDetector, EdgeResult
-from models.monte_carlo import MonteCarloSimulator
-from models.distribution import Distribution
+try:
+    from ..data.stats_fetcher import StatsFetcher
+    from ..edge.detector import EdgeDetector, EdgeResult
+    from ..models.monte_carlo import MonteCarloSimulator
+    from ..models.distribution import Distribution
+except ImportError:  # Allows importing when src/ is placed on sys.path directly
+    from data.stats_fetcher import StatsFetcher
+    from edge.detector import EdgeDetector, EdgeResult
+    from models.monte_carlo import MonteCarloSimulator
+    from models.distribution import Distribution
 
 
 @dataclass
@@ -21,10 +27,15 @@ class GameInfo:
 
 
 class NBAAnalyzer:
-    def __init__(self):
-        self.stats = StatsFetcher()
-        self.simulator = MonteCarloSimulator()
-        self.detector = EdgeDetector()
+    def __init__(
+        self,
+        stats_fetcher: StatsFetcher | None = None,
+        simulator: MonteCarloSimulator | None = None,
+        detector: EdgeDetector | None = None,
+    ):
+        self.stats = stats_fetcher or StatsFetcher()
+        self.simulator = simulator or MonteCarloSimulator()
+        self.detector = detector or EdgeDetector()
 
     def analyze_game(
         self,
